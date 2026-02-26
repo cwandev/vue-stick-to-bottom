@@ -379,7 +379,10 @@ export function createStickToBottomEngine(
     scrollElement.addEventListener('wheel', handleWheel, { passive: true })
 
     let previousHeight: number | undefined
-    state.resizeObserver = new ResizeObserver(([entry]) => {
+    state.resizeObserver = new ResizeObserver((entries) => {
+      const entry = entries[0]
+      if (!entry)
+        return
       const { height } = entry.contentRect
       const difference = height - (previousHeight ?? height)
       state.resizeDifference = difference

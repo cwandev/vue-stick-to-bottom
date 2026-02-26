@@ -14,14 +14,14 @@ const messagesB = useFakeMessages(speed)
   <div class="flex flex-col gap-10 p-10 items-center w-full">
     <input
       v-model.number="speed"
-      class="w-full max-w-screen-lg"
+      class="w-full max-w-5xl"
       type="range"
       min="0"
       max="1"
       step="0.01"
     >
 
-    <div class="flex gap-6 w-full max-w-screen-lg">
+    <div class="flex gap-6 w-full max-w-5xl">
       <div class="prose flex flex-col gap-2 w-full overflow-hidden">
         <h2 class="flex justify-center">
           smooth:
@@ -31,7 +31,7 @@ const messagesB = useFakeMessages(speed)
             <div
               v-for="i in 10"
               :key="`placeholder-${i}`"
-              class="bg-gray-100 rounded-lg p-4 shadow-md break-words"
+              class="bg-gray-100 rounded-lg p-4 shadow-md wrap-break-word"
             >
               <h1>This is a test</h1>
               more testing text...
@@ -40,7 +40,7 @@ const messagesB = useFakeMessages(speed)
             <div
               v-for="m in messagesA"
               :key="m.id"
-              class="rounded-lg p-4 shadow-md break-words"
+              class="rounded-lg p-4 shadow-md wrap-break-word"
               :class="m.large ? 'bg-gray-100 text-4xl font-extrabold leading-tight' : 'bg-gray-100'"
             >
               {{ m.text }}
@@ -65,7 +65,7 @@ const messagesB = useFakeMessages(speed)
             <div
               v-for="i in 10"
               :key="`placeholder-${i}`"
-              class="bg-gray-100 rounded-lg p-4 shadow-md break-words"
+              class="bg-gray-100 rounded-lg p-4 shadow-md wrap-break-word"
             >
               <h1>This is a test</h1>
               more testing text...
@@ -74,7 +74,7 @@ const messagesB = useFakeMessages(speed)
             <div
               v-for="m in messagesB"
               :key="m.id"
-              class="rounded-lg p-4 shadow-md break-words"
+              class="rounded-lg p-4 shadow-md wrap-break-word"
               :class="m.large ? 'bg-gray-100 text-4xl font-extrabold leading-tight' : 'bg-gray-100'"
             >
               {{ m.text }}
