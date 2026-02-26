@@ -6,3 +6,7 @@ onlyBuiltDependencies:
   - '@tailwindcss/oxide'
   - esbuild
   - simple-git-hooks
+
+peerDependencyRules:
+  allowedVersions:
+    eslint: '10'
