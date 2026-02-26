@@ -1,5 +1,8 @@
 name: Release
 
+permissions:
+  contents: write
+
 on:
   push:
     tags:
@@ -9,14 +12,30 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Set node
-        uses: actions/setup-node@v3
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
         with:
           node-version: 20.x
+          registry-url: 'https://registry.npmjs.org'
 
-      - run: npx conventional-github-releaser -p angular
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Install dependencies
+        run: pnpm i --frozen-lockfile
+
+      - name: Generate GitHub Release notes
+        run: pnpm dlx changelogithub
         env:
-          CONVENTIONAL_GITHUB_RELEASER_TOKEN: ${{secrets.GITHUB_TOKEN}}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish to npm
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: pnpm publish --no-git-checks
