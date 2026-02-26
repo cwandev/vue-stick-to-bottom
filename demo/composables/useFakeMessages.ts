@@ -1,6 +1,6 @@
 import type { Ref } from 'vue'
 import { LoremIpsum } from 'lorem-ipsum'
-import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { onBeforeUnmount, onMounted, ref, toValue, watch } from 'vue'
 
 export interface DemoMessage {
   id: number
@@ -10,28 +10,28 @@ export interface DemoMessage {
 
 export function useFakeMessages(speed: Ref<number> | number) {
   const messages = ref<DemoMessage[]>([])
-  let timer: any
   const lorem = new LoremIpsum({
     sentencesPerParagraph: { max: 2, min: 1 },
     wordsPerSentence: { max: 12, min: 3 },
   })
 
-  const getSpeed = () => (typeof speed === 'number' ? speed : speed.value)
-
+  let timer: ReturnType<typeof setInterval> | undefined
   let nextId = 1
 
   function pushOne() {
     const makeLarge = Math.random() < 0.22
     messages.value.push({
       id: nextId++,
-      text: makeLarge ? lorem.generateWords(10) : lorem.generateSentences(Math.random() < 0.5 ? 1 : 2),
+      text: makeLarge
+        ? lorem.generateWords(10)
+        : lorem.generateSentences(Math.random() < 0.5 ? 1 : 2),
       large: makeLarge,
     })
   }
 
   function schedule() {
     clearInterval(timer)
-    const s = Math.max(0, Math.min(1, getSpeed()))
+    const s = Math.max(0, Math.min(1, toValue(speed)))
     const interval = 80 + (1 - s) * 500
     timer = setInterval(() => {
       pushOne()
@@ -52,14 +52,7 @@ export function useFakeMessages(speed: Ref<number> | number) {
   })
 
   if (typeof speed !== 'number') {
-    let last = speed.value
-    const id = setInterval(() => {
-      if (speed.value !== last) {
-        last = speed.value
-        schedule()
-      }
-    }, 100)
-    onBeforeUnmount(() => clearInterval(id))
+    watch(speed, schedule)
   }
 
   return messages
