@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { Animation, GetTargetScrollTop, SpringAnimation } from '../core/engine'
 import { computed, provide, watch } from 'vue'
 import useStickToBottom from '../composables/useStickToBottom'
 import { StickToBottomKey } from '../context/stickToBottom'
@@ -7,19 +8,16 @@ defineOptions({ name: 'StickToBottom' })
 
 const props = defineProps<StickToBottomProps>()
 
-export interface StickToBottomProps {
-  resize?: 'instant' | { damping?: number, stiffness?: number, mass?: number }
-  initial?: boolean | 'instant' | { damping?: number, stiffness?: number, mass?: number }
-  targetScrollTop?: (target: number, ctx: { scrollElement: HTMLElement, contentElement: HTMLElement }) => number
-  damping?: number
-  stiffness?: number
-  mass?: number
+export interface StickToBottomProps extends SpringAnimation {
+  resize?: Animation
+  initial?: Animation | boolean
+  targetScrollTop?: GetTargetScrollTop
   anchor?: 'auto' | 'none'
 }
 
 const { scrollRef, contentRef, isAtBottom, isNearBottom, escapedFromLock, scrollToBottom, stopScroll, setOptions } = useStickToBottom({
-  resize: props.resize as any,
-  initial: props.initial as any,
+  resize: props.resize,
+  initial: props.initial,
   targetScrollTop: props.targetScrollTop,
   damping: props.damping,
   stiffness: props.stiffness,
@@ -40,7 +38,6 @@ provide(StickToBottomKey, context)
 
 defineExpose(context)
 
-// Respond to prop changes, sync engine parameters in real time
 watch(
   () => [
     props.resize,
@@ -52,8 +49,8 @@ watch(
   ],
   () => {
     setOptions({
-      resize: props.resize as any,
-      initial: props.initial as any,
+      resize: props.resize,
+      initial: props.initial,
       targetScrollTop: props.targetScrollTop,
       damping: props.damping,
       stiffness: props.stiffness,
@@ -64,23 +61,37 @@ watch(
 )
 
 const overflowAnchor = computed(() => props.anchor ?? 'auto')
+
+const slotProps = computed(() => ({
+  isAtBottom: isAtBottom.value,
+  isNearBottom: isNearBottom.value,
+  escapedFromLock: escapedFromLock.value,
+  scrollToBottom,
+  stopScroll,
+}))
 </script>
 
 <template>
-  <!-- Single root: forward external style/class to the root so height:50vh works -->
   <div style="height: 100%; width: 100%;">
     <div style="position: relative; height: 100%; width: 100%;">
-      <div ref="scrollRef" :style="{ 'overflow-anchor': overflowAnchor, 'overflow': 'auto', 'height': '100%', 'width': '100%' }">
+      <div
+        ref="scrollRef"
+        :style="{
+          'overflow-anchor': overflowAnchor,
+          'overflow': 'auto',
+          'height': '100%',
+          'width': '100%',
+          'scrollbar-gutter': 'stable both-edges',
+        }"
+      >
         <div ref="contentRef">
-          <slot />
+          <slot v-bind="slotProps" />
         </div>
       </div>
 
-      <!-- Overlay layer: floats above scrolling content (e.g. action buttons) -->
-      <slot name="overlay" />
+      <slot name="overlay" v-bind="slotProps" />
     </div>
 
-    <!-- Out-of-scroll area (e.g. external controls) -->
-    <slot name="after" />
+    <slot name="after" v-bind="slotProps" />
   </div>
 </template>

@@ -1,13 +1,14 @@
-import type { ScrollToBottom, ScrollToBottomOptions, StickToBottomOptions, StickToBottomPublicState, StopScroll } from '../core/engine'
-import { onBeforeUnmount, onMounted, ref, shallowRef, watchEffect } from 'vue'
-import createStickToBottomEngine from '../core/engine'
+import type { Ref } from 'vue'
+import type { ScrollToBottom, StickToBottomOptions, StopScroll } from '../core/engine'
+import { onBeforeUnmount, ref, watchEffect } from 'vue'
+import { createStickToBottomEngine } from '../core/engine'
 
 export interface UseStickToBottomReturn {
-  scrollRef: ReturnType<typeof ref<HTMLElement | null>>
-  contentRef: ReturnType<typeof ref<HTMLElement | null>>
-  isAtBottom: ReturnType<typeof ref<boolean>>
-  isNearBottom: ReturnType<typeof ref<boolean>>
-  escapedFromLock: ReturnType<typeof ref<boolean>>
+  scrollRef: Ref<HTMLElement | null>
+  contentRef: Ref<HTMLElement | null>
+  isAtBottom: Ref<boolean>
+  isNearBottom: Ref<boolean>
+  escapedFromLock: Ref<boolean>
   scrollToBottom: ScrollToBottom
   stopScroll: StopScroll
   setOptions: (options: Partial<StickToBottomOptions>) => void
@@ -17,63 +18,45 @@ export function useStickToBottom(options: StickToBottomOptions = {}): UseStickTo
   const scrollRef = ref<HTMLElement | null>(null)
   const contentRef = ref<HTMLElement | null>(null)
 
-  const isAtBottom = ref<boolean>(options.initial !== false)
-  const isNearBottom = ref<boolean>(false)
-  const escapedFromLock = ref<boolean>(false)
+  const isAtBottom = ref(options.initial !== false)
+  const isNearBottom = ref(false)
+  const escapedFromLock = ref(false)
 
-  const engine = shallowRef(createStickToBottomEngine(options))
-
-  const unsubscribe = shallowRef<null | (() => void)>(null)
-
-  function bind() {
-    if (!scrollRef.value || !contentRef.value)
-      return
-    engine.value.attach(scrollRef.value, contentRef.value)
-    unsubscribe.value = engine.value.onChange((s: StickToBottomPublicState) => {
-      isAtBottom.value = s.isAtBottom
-      isNearBottom.value = s.isNearBottom
-      escapedFromLock.value = s.escapedFromLock
-    })
-  }
-
-  function unbind() {
-    unsubscribe.value?.()
-    unsubscribe.value = null
-    engine.value.detach()
-  }
-
-  onMounted(() => {
-    bind()
-  })
-
-  onBeforeUnmount(() => {
-    unbind()
-    engine.value.destroy()
-  })
+  const engine = createStickToBottomEngine(options)
+  let unsubscribe: (() => void) | null = null
 
   watchEffect((onCleanup) => {
     if (!scrollRef.value || !contentRef.value)
       return
-    bind()
-    onCleanup(() => unbind())
+
+    engine.attach(scrollRef.value, contentRef.value)
+    unsubscribe = engine.onChange((s) => {
+      isAtBottom.value = s.isAtBottom
+      isNearBottom.value = s.isNearBottom
+      escapedFromLock.value = s.escapedFromLock
+    })
+
+    onCleanup(() => {
+      unsubscribe?.()
+      unsubscribe = null
+      engine.detach()
+    })
   })
 
-  function setOptions(next: Partial<StickToBottomOptions>) {
-    engine.value.setOptions(next)
-  }
+  onBeforeUnmount(() => {
+    engine.destroy()
+  })
 
-  const api: UseStickToBottomReturn = {
+  return {
     scrollRef,
     contentRef,
     isAtBottom,
     isNearBottom,
     escapedFromLock,
-    scrollToBottom: (opts?: ScrollToBottomOptions) => engine.value.scrollToBottom(opts),
-    stopScroll: () => engine.value.stopScroll(),
-    setOptions,
+    scrollToBottom: (opts?) => engine.scrollToBottom(opts),
+    stopScroll: () => engine.stopScroll(),
+    setOptions: next => engine.setOptions(next),
   }
-
-  return api
 }
 
 export default useStickToBottom

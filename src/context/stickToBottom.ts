@@ -3,11 +3,11 @@ import type { ScrollToBottom, StopScroll } from '../core/engine'
 import { inject } from 'vue'
 
 export interface StickToBottomContext {
-  scrollRef: Ref<HTMLElement | null | undefined>
-  contentRef: Ref<HTMLElement | null | undefined>
-  isAtBottom: Ref<boolean | undefined>
-  isNearBottom: Ref<boolean | undefined>
-  escapedFromLock: Ref<boolean | undefined>
+  scrollRef: Ref<HTMLElement | null>
+  contentRef: Ref<HTMLElement | null>
+  isAtBottom: Ref<boolean>
+  isNearBottom: Ref<boolean>
+  escapedFromLock: Ref<boolean>
   scrollToBottom: ScrollToBottom
   stopScroll: StopScroll
 }
