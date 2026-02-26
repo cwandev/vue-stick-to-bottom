@@ -1,15 +1,24 @@
-/*! ---------------------------------------------------------------------------------------------
- *  Framework-agnostic stick-to-bottom engine (ported from React version)
- *  - No framework imports; manages DOM + animation + observers
- *-------------------------------------------------------------------------------------------- */
-
 export interface SpringAnimation {
+  /**
+   * A value from 0 to 1, on how much to damp the animation.
+   * 0 means no damping, 1 means full damping.
+   * @default 0.7
+   */
   damping?: number
+  /**
+   * The stiffness of how fast/slow the animation gets up to speed.
+   * @default 0.05
+   */
   stiffness?: number
+  /**
+   * The inertial mass associated with the animation.
+   * Higher numbers make the animation slower.
+   * @default 1.25
+   */
   mass?: number
 }
 
-export type Animation = 'instant' | ScrollBehavior | SpringAnimation
+export type Animation = ScrollBehavior | SpringAnimation
 
 export interface ScrollElements {
   scrollElement: HTMLElement
@@ -31,9 +40,30 @@ export type ScrollToBottomOptions
   = | ScrollBehavior
     | {
       animation?: Animation
+      /**
+       * Whether to wait for any existing scrolls to finish before
+       * performing this one. If a number (ms) is passed, it will
+       * wait for that duration before performing the scroll.
+       * @default false
+       */
       wait?: boolean | number
+      /**
+       * Whether to prevent the user from escaping the scroll
+       * by scrolling up with their mouse.
+       */
       ignoreEscapes?: boolean
+      /**
+       * Only scroll to the bottom if we're already at the bottom.
+       * @default false
+       */
       preserveScrollPosition?: boolean
+      /**
+       * Extra duration in ms that this scroll event should persist for
+       * (in addition to the time it takes to reach the bottom).
+       * Not to be confused with the duration of the animation itself —
+       * for that, adjust the animation option.
+       * @default 0
+       */
       duration?: number | Promise<void>
     }
 
@@ -416,11 +446,9 @@ export function createStickToBottomEngine(
   }
 
   function scrollToBottom(scrollOptions: ScrollToBottomOptions = {}): Promise<boolean> | boolean {
-    if (typeof scrollOptions === 'string') {
-      scrollOptions = { animation: scrollOptions } as any
-    }
-
-    const opts = (scrollOptions && typeof scrollOptions === 'object') ? (scrollOptions as any) : {}
+    const opts: Exclude<ScrollToBottomOptions, string> = typeof scrollOptions === 'string'
+      ? { animation: scrollOptions }
+      : scrollOptions
 
     if (!opts.preserveScrollPosition) {
       setIsAtBottom(true)
@@ -459,7 +487,7 @@ export function createStickToBottomEngine(
         const tick
           = typeof performance !== 'undefined' ? performance.now() : Date.now()
         const tickDelta = (tick - (state.lastTick ?? tick)) / SIXTY_FPS_INTERVAL_MS
-        state.animation ||= { behavior: behavior as any, promise, ignoreEscapes }
+        state.animation ||= { behavior, promise, ignoreEscapes }
 
         if (state.animation.behavior === behavior) {
           state.lastTick = tick
@@ -504,7 +532,7 @@ export function createStickToBottomEngine(
             animation: mergeAnimations(options, options.resize),
             ignoreEscapes,
             duration: Math.max(0, durationElapsed - Date.now()) || undefined,
-          }) as any
+          })
         }
 
         return state.isAtBottom
