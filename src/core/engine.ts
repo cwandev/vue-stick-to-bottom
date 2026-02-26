@@ -268,18 +268,19 @@ export function createStickToBottomEngine(
     if (ev.target !== state.scrollElement)
       return
     const scrollTop = getScrollTop()
+    const ignoreScrollToTop = state.ignoreScrollToTop
     let lastScrollTop = state.lastScrollTop ?? scrollTop
     state.lastScrollTop = scrollTop
     state.ignoreScrollToTop = undefined
 
-    if (state.ignoreScrollToTop && state.ignoreScrollToTop > scrollTop) {
-      lastScrollTop = state.ignoreScrollToTop
+    if (ignoreScrollToTop && ignoreScrollToTop > scrollTop) {
+      lastScrollTop = ignoreScrollToTop
     }
 
     setIsNearBottom(computeIsNearBottom())
 
     setTimeout(() => {
-      if (state.resizeDifference || scrollTop === state.ignoreScrollToTop) {
+      if (state.resizeDifference || scrollTop === ignoreScrollToTop) {
         return
       }
 
