@@ -1,7 +1,7 @@
 {
   "name": "vue-stick-to-bottom",
   "type": "module",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": false,
   "description": "A lightweight Vue utility intended mainly for AI chat applications, for smoothly sticking to the bottom of messages.",
   "author": {
