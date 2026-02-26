@@ -72,8 +72,8 @@ const slotProps = computed(() => ({
 </script>
 
 <template>
-  <div style="height: 100%; width: 100%;">
-    <div style="position: relative; height: 100%; width: 100%;">
+  <div>
+    <div style="position: relative; height: 100%; width: 100%; flex: 1; min-height: 0;">
       <div
         ref="scrollRef"
         :style="{
